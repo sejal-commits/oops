@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For My Universe</title>
+    <style>
+        :root {
+            --bg-color: #050505;
+            --env-color: #ff4d6d;
+            --env-dark: #c92c5a;
+            --paper-color: #ffffff;
+            --text-pink: #d63384;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: var(--bg-color);
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        canvas {
+            display: block; position: fixed;
+            top: 0; left: 0; z-index: 1;
+        }
+
+        /* --- SLIDE 1: THE GALAXY START --- */
+        #slide1 {
+            position: relative; z-index: 10;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(15px);
+            padding: 50px; border-radius: 30px;
+            text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 0 50px rgba(255, 77, 109, 0.2);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        #slide1 h1 {
+            color: white; font-size: 2.2rem; margin-bottom: 10px;
+            text-shadow: 0 0 15px #ff4d6d;
+        }
+
+        .buttons {
+            margin-top: 30px; display: flex;
+            justify-content: center; gap: 20px; height: 60px;
+        }
+
+        button {
+            padding: 15px 35px; font-size: 1.1rem;
+            border: none; border-radius: 12px; cursor: pointer;
+            font-weight: bold; transition: 0.3s;
+        }
+
+        #yesBtn { background: var(--env-color); color: white; }
+        #noBtn { background: #444; color: white; position: relative; }
+
+        /* --- SLIDE 2: THE ENVELOPE REVEAL --- */
+        #slide2 {
+            display: none; position: relative; z-index: 11;
+            flex-direction: column; align-items: center;
+            opacity: 0; transition: opacity 1s ease;
+        }
+
+        .envelope-wrapper {
+            position: relative; cursor: pointer;
+            transform-style: preserve-3d;
+        }
+
+        .envelope {
+            position: relative; width: 320px; height: 200px;
+            background-color: var(--env-color);
+            border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+
+        .envelope::before {
+            content: ""; position: absolute; top: 0; z-index: 4;
+            border-top: 130px solid var(--env-dark);
+            border-left: 160px solid transparent; border-right: 160px solid transparent;
+            transform-origin: top; transition: all 0.7s ease-in-out;
+        }
+
+        .envelope::after {
+            content: ""; position: absolute; z-index: 3;
+            width: 0; height: 0;
+            border-top: 100px solid transparent;
+            border-right: 160px solid #ff758f;
+            border-bottom: 100px solid #ff758f;
+            border-left: 160px solid #ff85a1;
+            border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;
+        }
+
+        .letter {
+            position: absolute; bottom: 5px; left: 5%;
+            width: 90%; height: 180px;
+            background: white; z-index: 2;
+            padding: 15px; box-sizing: border-box;
+            border-radius: 10px; transition: all 0.7s ease-in-out 0.2s;
+            text-align: left; font-family: 'Georgia', serif;
+            overflow-y: auto;
+        }
+
+        .envelope-wrapper.open .envelope::before { transform: rotateX(180deg); z-index: 1; }
+        .envelope-wrapper.open .letter { transform: translateY(-140px); z-index: 5; height: 380px; }
+
+        .heart-seal {
+            position: absolute; top: 50%; left: 50%;
+            width: 45px; height: 45px; background: #fff; z-index: 11;
+            transform: translate(-50%, -20%) rotate(45deg); transition: 0.4s;
+        }
+        .heart-seal::before, .heart-seal::after {
+            content: ""; position: absolute; width: 45px; height: 45px;
+            background: #fff; border-radius: 50%;
+        }
+        .heart-seal::before { left: -22.5px; }
+        .heart-seal::after { top: -22.5px; }
+        .envelope-wrapper.open .heart-seal { opacity: 0; transform: scale(0); }
+
+        .floating-heart {
+            position: absolute; z-index: 100; pointer-events: none;
+            animation: float 4s ease-in forwards;
+        }
+        @keyframes float {
+            0% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100vh) scale(1.5) rotate(360deg); opacity: 0; }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- 💖 FIXED ROMANTIC AUDIO -->
+    <audio id="bgMusic" autoplay loop muted>
+    <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_6b4d3f0c63.mp3?filename=romantic-piano-ambient-110997.mp3" type="audio/mpeg">
+</audio>
+
+    <canvas id="galaxy"></canvas>
+
+    <div id="slide1">
+        <h1>I have something to tell you</h1>
+        <p style="color: #aaa; margin-bottom: 30px;">Will you listen?</p>
+        <div class="buttons">
+            <button id="yesBtn" onclick="nextSlide()">Yes!</button>
+            <button id="noBtn" onmouseover="dodge()">No</button>
+        </div>
+    </div>
+
+    <div id="slide2">
+        <p style="color: white; font-weight: bold; margin-bottom: 25px; letter-spacing: 1px;">A MESSAGE FROM THE STARS</p>
+        <div class="envelope-wrapper" onclick="openEnvelope()">
+            <div class="heart-seal"></div>
+            <div class="envelope">
+                <div class="letter">
+                    <p id="line1" style="font-size: 0.9rem; color: #333; line-height: 1.4; margin-bottom: 10px;"></p>
+                    <p id="line2" style="font-size: 0.9rem; color: #333; line-height: 1.4; margin-bottom: 10px;"></p>
+                    <p id="line3" style="font-size: 1rem; font-weight: bold; color: var(--text-pink); margin-top: 15px;"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('galaxy');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        const mouse = { x: -1000, y: -1000 };
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        resize();
+
+        function heartMath(t) {
+            const x = 16 * Math.pow(Math.sin(t), 3);
+            const y = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+            return { x: x * 10, y: y * 10 };
+        }
+
+        class Star {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 1.2;
+                this.vy = (Math.random() - 0.5) * 1.2;
+                this.size = Math.random() * 2 + 1;
+                this.color = `hsla(${Math.random() * 30 + 340}, 100%, 75%, ${Math.random()})`;
+                const t = Math.random() * Math.PI * 2;
+                const p = heartMath(t);
+                this.hx = p.x; this.hy = p.y;
+            }
+            update() {
+                const dx = mouse.x - this.x;
+                const dy = mouse.y - this.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                if (dist < 250) {
+                    this.x += (mouse.x + this.hx - this.x) * 0.08;
+                    this.y += (mouse.y + this.hy - this.y) * 0.08;
+                } else {
+                    this.x += this.vx; this.y += this.vy;
+                    if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                    if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+            }
+        }
+
+        for(let i=0; i<600; i++) particles.push(new Star());
+
+        function animate() {
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        function dodge() {
+            const x = Math.random() * (window.innerWidth - 120);
+            const y = Math.random() * (window.innerHeight - 60);
+            const btn = document.getElementById('noBtn');
+            btn.style.position = 'fixed'; btn.style.left = x + 'px'; btn.style.top = y + 'px';
+        }
+
+        function nextSlide() {
+            const music = document.getElementById("bgMusic");
+            music.play().catch(e => console.log("Audio block:", e));
+            document.getElementById('slide1').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('slide1').classList.add('hidden');
+                const s2 = document.getElementById('slide2');
+                s2.style.display = 'flex';
+                setTimeout(() => s2.style.opacity = '1', 50);
+            }, 800);
+        }
+
+        function openEnvelope() {
+            if (document.querySelector('.envelope-wrapper').classList.contains('open')) return;
+            document.querySelector('.envelope-wrapper').classList.add('open');
+            setInterval(createHeart, 350);
+            typeMessage();
+        }
+
+        function createHeart() {
+            const h = document.createElement('div');
+            h.className = 'floating-heart'; h.innerHTML = '❤️';
+            h.style.left = (window.innerWidth/2 + (Math.random()*150 - 75)) + 'px';
+            h.style.top = '60%'; document.body.appendChild(h);
+            setTimeout(() => h.remove(), 4000);
+        }
+
+        async function typeMessage() {
+            const m1 = "I’ve sat down to write this a dozen times, and every time, the words seem to fall short of what’s been racing through my head for the last two months. From the very first moment we met, something shifted for me. I felt a connection immediately, but I’ll be honest—I was too scared to say anything. I didn’t want to ruin the rhythm of what we had, or maybe I was just waiting for the right moment that never seemed to come.";
+            const m2 = "But seeing you again yesterday changed everything. I didn’t think it was possible to feel even more than I already did, yet there I was, falling even deeper. Watching you, talking to you... it made me realize that staying silent is much harder than being brave. I don’t want to let another day go by without you knowing how I feel. You’ve been on my mind since the start, and after yesterday, I knew I couldn't keep this to myself anymore.";
+            const m3 = "With all my heart... Will you be mine? ❤️";
+            await typing(m1, 'line1'); 
+            await typing(m2, 'line2'); 
+            await typing(m3, 'line3');
+        }
+
+        function typing(text, id) {
+            return new Promise(res => {
+                let i = 0; const el = document.getElementById(id);
+                function step() {
+                    if (i < text.length) {
+                        el.innerHTML += text.charAt(i); i++;
+                        setTimeout(step, 40);
+                    } else res();
+                }
+                step();
+            });
+        }
+    </script>
+</body>
+</html>
